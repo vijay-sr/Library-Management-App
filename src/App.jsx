@@ -11,7 +11,7 @@ import About from './pages/landing/About';
 import Contact from './pages/landing/Contact';
 
 // Librarian dashboard (reuses the existing user dashboard for now)
-import LibrarianDashboard from './pages/user/Dashboard';
+import LibrarianDashboard from './pages/landing/Dashboard';
 
 // ── Super Admin Portal ───────────────────────────────────────────────
 import SuperAdminLogin from './pages/super-admin/Login';
@@ -23,6 +23,8 @@ import UserLogin from './pages/user/Login';
 import UserRegister from './pages/user/Register';
 import UserDashboard from './pages/user/Dashboard';
 import SearchBooks from './pages/user/SearchBooks';
+import ForgotPassword from './pages/user/Forgot-password';
+import LoginOtp from './pages/user/Login-otp';
 
 function App() {
   return (
@@ -33,9 +35,9 @@ function App() {
         <Route path="/" element={<LandingLayout><Home /></LandingLayout>} />
         <Route path="/about" element={<LandingLayout><About /></LandingLayout>} />
         <Route path="/contact" element={<LandingLayout><Contact /></LandingLayout>} />
-        <Route path="/register-library" element={<LandingLayout><RegisterLibrary /></LandingLayout>} />
-        <Route path="/librarian/login" element={<LibrarianLogin />} />
-        <Route path="/librarian/dashboard" element={<LibrarianDashboard />} />
+        <Route path="/register" element={<RegisterLibrary />} />
+        <Route path="/login" element={<LibrarianLogin />} />
+        <Route path="/dashboard" element={<LibrarianDashboard />} />
 
         {/* ── Super Admin Portal ─────────── */}
         <Route path="/super-admin/login" element={<SuperAdminLogin />} />
@@ -47,6 +49,8 @@ function App() {
         <Route path="/user/register" element={<UserRegister />} />
         <Route path="/user/dashboard" element={<UserDashboard />} />
         <Route path="/user/search" element={<SearchBooks />} />
+        <Route path="/user/forgot-password" element={<ForgotPassword />} />
+        <Route path="/user/login-otp" element={<LoginOtp />} />
 
       </Routes>
     </Router>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -129,9 +130,9 @@ const Login = () => {
                 {/* Footer Links */}
                 <p className="mt-8 text-center text-sm text-slate-600 dark:text-slate-400">
                     Don't have an account?{' '}
-                    <a className="font-semibold text-primary hover:underline" href="#">
+                    <Link to="/user/register" className="font-semibold text-primary hover:underline">
                         Sign up for free
-                    </a>
+                    </Link>
                 </p>
 
                 {/* Aesthetic Background Elements (Subtle) */}

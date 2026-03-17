@@ -1,8 +1,9 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const ForgotPassword = () => {
     return (
-        <body className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+        <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
             <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
                 <div className="layout-container flex h-full grow flex-col">
                     <header className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-6 lg:px-40 py-4 bg-white dark:bg-slate-900">
@@ -12,9 +13,9 @@ const ForgotPassword = () => {
                             </div>
                             <h2 className="text-slate-900 dark:text-white text-xl font-bold leading-tight tracking-tight">LibTrack</h2>
                         </div>
-                        <button className="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                        <Link to="/user/login" className="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                             <span className="material-symbols-outlined">arrow_back</span>
-                        </button>
+                        </Link>
                     </header>
                     <main className="flex flex-1 items-center justify-center px-6 py-12">
                         <div className="w-full max-w-[480px] bg-white dark:bg-slate-900 p-8 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
@@ -38,10 +39,10 @@ const ForgotPassword = () => {
                                     <span>Send Reset Link</span>
                                 </button>
                                 <div className="pt-4 text-center">
-                                    <a className="inline-flex items-center gap-2 text-primary hover:text-primary/80 text-sm font-semibold transition-colors group" href="#">
+                                    <Link to="/user/login" className="inline-flex items-center gap-2 text-primary hover:text-primary/80 text-sm font-semibold transition-colors group">
                                         <span className="material-symbols-outlined text-lg transition-transform group-hover:-translate-x-1">arrow_back</span>
                                         Back to Login
-                                    </a>
+                                    </Link>
                                 </div>
                             </div>
                         </div>
@@ -49,7 +50,7 @@ const ForgotPassword = () => {
                     <div className="fixed bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/10 via-primary to-primary/10 opacity-20"></div>
                 </div>
             </div>
-        </body>
+        </div>
     );
 };
 

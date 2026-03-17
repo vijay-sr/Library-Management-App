@@ -16,6 +16,8 @@ import LibrarianDashboard from './pages/landing/Dashboard';
 // ── Super Admin Portal ───────────────────────────────────────────────
 import SuperAdminLogin from './pages/super-admin/Login';
 import SuperAdminDashboard from './pages/super-admin/Dashboard';
+import AddClient from './pages/super-admin/AddClient';
+import ClientManagement from './pages/super-admin/ClientManagement';
 
 // ── User Portal (Library Members) ───────────────────────────────────
 import UserHome from './pages/user/Home';
@@ -42,6 +44,8 @@ function App() {
         {/* ── Super Admin Portal ─────────── */}
         <Route path="/super-admin/login" element={<SuperAdminLogin />} />
         <Route path="/super-admin/dashboard" element={<SuperAdminDashboard />} />
+        <Route path="/super-admin/add-client" element={<AddClient />} />
+        <Route path="/super-admin/clients" element={<ClientManagement />} />
 
         {/* ── User Portal (Library Members) ─ */}
         <Route path="/user" element={<UserHome />} />

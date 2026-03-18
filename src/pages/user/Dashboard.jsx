@@ -1,8 +1,32 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { supabase } from '../../lib/supabase';
 import { Link, useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
     const navigate = useNavigate();
+    const [books, setBooks] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        async function fetchBooks() {
+            try {
+                const { data, error } = await supabase
+                    .from('books')
+                    .select('*');
+
+                if (error) throw error;
+                setBooks(data);
+            } catch (err) {
+                console.error("Error fetching books:", err);
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchBooks();
+    }, []);
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -134,74 +158,39 @@ const Dashboard = () => {
                                             <tr>
                                                 <th className="px-6 py-4 text-slate-600 dark:text-slate-400 text-sm font-semibold uppercase tracking-wider">Book Title</th>
                                                 <th className="px-6 py-4 text-slate-600 dark:text-slate-400 text-sm font-semibold uppercase tracking-wider">Author</th>
-                                                <th className="px-6 py-4 text-slate-600 dark:text-slate-400 text-sm font-semibold uppercase tracking-wider">Due Date</th>
-                                                <th className="px-6 py-4 text-slate-600 dark:text-slate-400 text-sm font-semibold uppercase tracking-wider">Status</th>
+                                                <th className="px-6 py-4 text-slate-600 dark:text-slate-400 text-sm font-semibold uppercase tracking-wider">Added On</th>
                                                 <th className="px-6 py-4 text-slate-600 dark:text-slate-400 text-sm font-semibold uppercase tracking-wider text-right">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                                            <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="size-10 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                                                            <span className="material-symbols-outlined text-slate-400">book</span>
+                                            {loading && (
+                                                <tr><td colSpan="4" className="px-6 py-4 text-center">Loading books...</td></tr>
+                                            )}
+                                            {error && (
+                                                <tr><td colSpan="4" className="px-6 py-4 text-center text-red-500">Error: {error}</td></tr>
+                                            )}
+                                            {!loading && !error && books.length === 0 && (
+                                                <tr><td colSpan="4" className="px-6 py-4 text-center text-slate-500">No books found in Supabase. Add some!</td></tr>
+                                            )}
+                                            {books.map((book) => (
+                                                <tr key={book.id || book.title} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="size-10 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                                                                <span className="material-symbols-outlined text-slate-400">book</span>
+                                                            </div>
+                                                            <span className="font-bold text-slate-900 dark:text-slate-100">{book.title}</span>
                                                         </div>
-                                                        <span className="font-bold text-slate-900 dark:text-slate-100">The Great Gatsby</span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 text-slate-600 dark:text-slate-400">F. Scott Fitzgerald</td>
-                                                <td className="px-6 py-4 text-amber-600 dark:text-amber-500 font-medium">Oct 24, 2023</td>
-                                                <td className="px-6 py-4">
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
-                                                        Due Soon
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 text-right">
-                                                    <button className="text-primary hover:text-primary/80 text-sm font-bold">Renew</button>
-                                                </td>
-                                            </tr>
-                                            
-                                            <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="size-10 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                                                            <span className="material-symbols-outlined text-slate-400">book</span>
-                                                        </div>
-                                                        <span className="font-bold text-slate-900 dark:text-slate-100">1984</span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 text-slate-600 dark:text-slate-400">George Orwell</td>
-                                                <td className="px-6 py-4 text-slate-600 dark:text-slate-400 font-medium">Nov 02, 2023</td>
-                                                <td className="px-6 py-4">
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
-                                                        Borrowed
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 text-right">
-                                                    <button className="text-primary hover:text-primary/80 text-sm font-bold">Renew</button>
-                                                </td>
-                                            </tr>
-                                            
-                                            <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="size-10 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                                                            <span className="material-symbols-outlined text-slate-400">book</span>
-                                                        </div>
-                                                        <span className="font-bold text-slate-900 dark:text-slate-100">Sapiens</span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 text-slate-600 dark:text-slate-400">Yuval Noah Harari</td>
-                                                <td className="px-6 py-4 text-slate-600 dark:text-slate-400 font-medium">Nov 15, 2023</td>
-                                                <td className="px-6 py-4">
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
-                                                        Borrowed
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 text-right">
-                                                    <button className="text-primary hover:text-primary/80 text-sm font-bold">Renew</button>
-                                                </td>
-                                            </tr>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{book.author || "Unknown"}</td>
+                                                    <td className="px-6 py-4 text-slate-600 dark:text-slate-400 font-medium">
+                                                        {book.created_at ? new Date(book.created_at).toLocaleDateString() : 'N/A'}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        <button className="text-primary hover:text-primary/80 text-sm font-bold">Borrow</button>
+                                                    </td>
+                                                </tr>
+                                            ))}
                                         </tbody>
                                     </table>
                                 </div>

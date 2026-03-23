@@ -1,8 +1,90 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { supabase } from '../../lib/supabase';
+import { useToast } from '../../components/common/ToastContext';
 
 const Register = () => {
+  const { showToast } = useToast();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
   const [cardNumber, setCardNumber] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+     // --- Validation Logic ---
+    if (fullName.trim().length < 3) {
+      showToast("Full name must be at least 3 characters.", "error");
+      setLoading(false);
+      return;
+    }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      showToast("Please enter a valid email address.", "error");
+      setLoading(false);
+      return;
+    }
+    if (cardNumber.length < 15) {
+      showToast("Please enter a complete 9-digit library card number.", "error");
+      setLoading(false);
+      return;
+    }
+    if (password.length < 6) {
+      showToast("Password must be at least 6 characters long.", "error");
+      setLoading(false);
+      return;
+    }
+    // ... rest of logic 
+    
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+          library_card_number: cardNumber,
+        },
+      },
+    });
+    if (signUpError) {
+      showToast(signUpError.message, "error");
+    } else {
+      showToast("Registration successful! Please check your email for confirmation.", "success");
+    }
+    setLoading(false);
+  };
+
+
+  const handleCardNumberChange = (e) => {
+    let value = e.target.value.toUpperCase();
+    
+    // Ensure it always starts with LIB-
+    if (!value.startsWith('LIB-')) {
+      // If the user tries to delete the prefix, put it back
+      if (value.length < 4) {
+        value = 'LIB-';
+      } else {
+        // Otherwise prepended LIB- if missing
+        value = 'LIB-' + value.replace(/^LIB-?/, '');
+      }
+    }
+
+    // Isolate the numeric part
+    const digits = value.slice(4).replace(/\D/g, '');
+    
+    // Reformat with dashes: XXX-XXX-XXX
+    let formatted = 'LIB-';
+    for (let i = 0; i < digits.length && i < 9; i++) {
+      if (i > 0 && i % 3 === 0) {
+        formatted += '-';
+      }
+      formatted += digits[i];
+    }
+    
+    setCardNumber(formatted);
+  };
 
   const handleGenerateDigitalCard = () => {
     const randomNum = () => Math.floor(100 + Math.random() * 900);
@@ -48,20 +130,37 @@ const Register = () => {
                 <h2 className="text-3xl font-extrabold text-slate-900 dark:text-slate-100 mb-2">Create an account</h2>
                 <p className="text-slate-500 dark:text-slate-400">Join our community and start exploring today.</p>
               </div>
-              <form className="space-y-5">
+
+              <form className="space-y-5" onSubmit={handleRegister}>
                 <div className="grid grid-cols-1 gap-5">
                   <div className="flex flex-col gap-1.5">
                     <label className="text-sm font-semibold text-slate-700 dark:text-slate-300" htmlFor="full-name">Full Name</label>
                     <div className="relative">
                       <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">person</span>
-                      <input className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none" id="full-name" placeholder="John Doe" type="text" />
+                      <input 
+                        className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none" 
+                        id="full-name" 
+                        placeholder="John Doe" 
+                        type="text" 
+                        required
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                      />
                     </div>
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <label className="text-sm font-semibold text-slate-700 dark:text-slate-300" htmlFor="email">Email Address</label>
                     <div className="relative">
                       <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">mail</span>
-                      <input className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none" id="email" placeholder="john@example.com" type="email" />
+                      <input 
+                        className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none" 
+                        id="email" 
+                        placeholder="john@example.com" 
+                        type="email" 
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
                     </div>
                   </div>
                   <div className="flex flex-col gap-1.5">
@@ -73,8 +172,9 @@ const Register = () => {
                         id="card-number" 
                         placeholder="LIB-000-000-000" 
                         type="text" 
+                        required
                         value={cardNumber}
-                        onChange={(e) => setCardNumber(e.target.value)}
+                        onChange={handleCardNumberChange}
                       />
                     </div>
                     <div className="flex items-center justify-between mt-0.5">
@@ -93,22 +193,35 @@ const Register = () => {
                     <label className="text-sm font-semibold text-slate-700 dark:text-slate-300" htmlFor="password">Password</label>
                     <div className="relative">
                       <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">lock</span>
-                      <input className="w-full pl-10 pr-10 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none" id="password" placeholder="••••••••" type="password" />
+                      <input 
+                        className="w-full pl-10 pr-10 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none" 
+                        id="password" 
+                        placeholder="••••••••" 
+                        type="password" 
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
                       <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg cursor-pointer">visibility</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 py-2">
-                  <input className="mt-1 rounded border-slate-300 text-primary focus:ring-primary" id="terms" type="checkbox" />
+                  <input className="mt-1 rounded border-slate-300 text-primary focus:ring-primary" id="terms" type="checkbox" required />
                   <label className="text-sm text-slate-600 dark:text-slate-400" htmlFor="terms">
                     I agree to the <Link className="text-primary hover:underline" to="/terms">Terms of Service</Link> and <Link className="text-primary hover:underline" to="/privacy">Privacy Policy</Link>.
                   </label>
                 </div>
-                <button className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-lg shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2" type="submit">
-                  <span>Create Account</span>
+                <button 
+                  className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-lg shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" 
+                  type="submit"
+                  disabled={loading}
+                >
+                  <span>{loading ? 'Creating Account...' : 'Create Account'}</span>
                   <span className="material-symbols-outlined text-lg">arrow_forward</span>
                 </button>
               </form>
+
               <div className="mt-8 pt-8 border-t border-slate-200 dark:border-slate-800">
                 <p className="text-center text-sm text-slate-500 dark:text-slate-400 mb-6 uppercase tracking-widest font-semibold">Or continue with</p>
                 <div className="grid grid-cols-2 gap-4">

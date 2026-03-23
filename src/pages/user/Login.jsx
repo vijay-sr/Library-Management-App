@@ -1,17 +1,43 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '../../lib/supabase';
+import { useToast } from '../../components/common/ToastContext';
 
 const Login = () => {
+    const { showToast } = useToast();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [rememberMe, setRememberMe] = useState(false);
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Login attempt:', { email, password, rememberMe });
-        // After successful login, navigate to user dashboard
-        navigate('/user/dashboard');
+        setLoading(true);
+
+        if (!/\S+@\S+\.\S+/.test(email)) {
+            showToast("Please enter a valid email address.", "error");
+            setLoading(false);
+            return;
+        }
+        if (password.length === 0) {
+            showToast("Password cannot be empty.", "error");
+            setLoading(false);
+            return;
+        }
+        
+        const { data, error: loginError } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
+        if (loginError) {
+            showToast(loginError.message, "error");
+            setLoading(false);
+        } else {
+            // Success! Navigate to dashboard
+            showToast("Welcome back!", "success");
+            navigate('/user/dashboard');
+        }
     };
 
     return (

@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 // Layouts
 import LandingLayout from './layouts/LandingLayout';
 
+// ── Common Components ────────────────────────────────────────────────
+import { ToastProvider } from './components/common/ToastContext';
+
 // ── Landing Portal (Marketing + Librarian) ──────────────────────────
 import Home from './pages/landing/Home';
 import RegisterLibrary from './pages/landing/RegisterLibrary';
@@ -30,34 +33,36 @@ import LoginOtp from './pages/user/Login-otp';
 
 function App() {
   return (
-    <Router>
-      <Routes>
+    <ToastProvider>
+      <Router>
+        <Routes>
 
-        {/* ── Landing / Marketing Website ─── */}
-        <Route path="/" element={<LandingLayout><Home /></LandingLayout>} />
-        <Route path="/about" element={<LandingLayout><About /></LandingLayout>} />
-        <Route path="/contact" element={<LandingLayout><Contact /></LandingLayout>} />
-        <Route path="/register" element={<RegisterLibrary />} />
-        <Route path="/login" element={<LibrarianLogin />} />
-        <Route path="/dashboard" element={<LibrarianDashboard />} />
+          {/* ── Landing / Marketing Website ─── */}
+          <Route path="/" element={<LandingLayout><Home /></LandingLayout>} />
+          <Route path="/about" element={<LandingLayout><About /></LandingLayout>} />
+          <Route path="/contact" element={<LandingLayout><Contact /></LandingLayout>} />
+          <Route path="/register" element={<RegisterLibrary />} />
+          <Route path="/login" element={<LibrarianLogin />} />
+          <Route path="/dashboard" element={<LibrarianDashboard />} />
 
-        {/* ── Super Admin Portal ─────────── */}
-        <Route path="/super-admin/login" element={<SuperAdminLogin />} />
-        <Route path="/super-admin/dashboard" element={<SuperAdminDashboard />} />
-        <Route path="/super-admin/add-client" element={<AddClient />} />
-        <Route path="/super-admin/clients" element={<ClientManagement />} />
+          {/* ── Super Admin Portal ─────────── */}
+          <Route path="/super-admin/login" element={<SuperAdminLogin />} />
+          <Route path="/super-admin/dashboard" element={<SuperAdminDashboard />} />
+          <Route path="/super-admin/add-client" element={<AddClient />} />
+          <Route path="/super-admin/clients" element={<ClientManagement />} />
 
-        {/* ── User Portal (Library Members) ─ */}
-        <Route path="/user" element={<UserHome />} />
-        <Route path="/user/login" element={<UserLogin />} />
-        <Route path="/user/register" element={<UserRegister />} />
-        <Route path="/user/dashboard" element={<UserDashboard />} />
-        <Route path="/user/search" element={<SearchBooks />} />
-        <Route path="/user/forgot-password" element={<ForgotPassword />} />
-        <Route path="/user/login-otp" element={<LoginOtp />} />
+          {/* ── User Portal (Library Members) ─ */}
+          <Route path="/user" element={<UserHome />} />
+          <Route path="/user/login" element={<UserLogin />} />
+          <Route path="/user/register" element={<UserRegister />} />
+          <Route path="/user/dashboard" element={<UserDashboard />} />
+          <Route path="/user/search" element={<SearchBooks />} />
+          <Route path="/user/forgot-password" element={<ForgotPassword />} />
+          <Route path="/user/login-otp" element={<LoginOtp />} />
 
-      </Routes>
-    </Router>
+        </Routes>
+      </Router>
+    </ToastProvider>
   );
 }
 

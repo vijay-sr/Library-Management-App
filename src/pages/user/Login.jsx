@@ -7,6 +7,7 @@ const Login = () => {
     const { showToast } = useToast();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -99,13 +100,13 @@ const Login = () => {
                                         <input 
                                             className="w-full pl-12 pr-12 py-3.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-background-light dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-slate-900 dark:text-slate-100 placeholder:text-slate-400" 
                                             placeholder="••••••••" 
-                                            type="password"
+                                            type={showPassword ? "text" : "password"}
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
                                             required
                                         />
-                                        <button className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition-colors" type="button">
-                                            <span className="material-symbols-outlined text-xl">visibility</span>
+                                        <button className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition-colors" type="button" onClick={() => setShowPassword(!showPassword)}>
+                                            <span className="material-symbols-outlined text-xl">{showPassword ? "visibility_off" : "visibility"}</span>
                                         </button>
                                     </div>
                                 </div>

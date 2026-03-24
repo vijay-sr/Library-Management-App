@@ -5,6 +5,7 @@ import LandingLayout from './layouts/LandingLayout';
 
 // ── Common Components ────────────────────────────────────────────────
 import { ToastProvider } from './components/common/ToastContext';
+import ProtectedRoute from './components/common/ProtectedRoute';
 
 // ── Landing Portal (Marketing + Librarian) ──────────────────────────
 import Home from './pages/landing/Home';
@@ -43,11 +44,19 @@ function App() {
           <Route path="/contact" element={<LandingLayout><Contact /></LandingLayout>} />
           <Route path="/register" element={<RegisterLibrary />} />
           <Route path="/login" element={<LibrarianLogin />} />
-          <Route path="/dashboard" element={<LibrarianDashboard />} />
+          <Route path="/dashboard" element={
+            <ProtectedRoute loginPath="/login">
+              <LibrarianDashboard />
+            </ProtectedRoute>
+          } />
 
           {/* ── Super Admin Portal ─────────── */}
           <Route path="/super-admin/login" element={<SuperAdminLogin />} />
-          <Route path="/super-admin/dashboard" element={<SuperAdminDashboard />} />
+          <Route path="/super-admin/dashboard" element={
+            <ProtectedRoute loginPath="/super-admin/login">
+              <SuperAdminDashboard />
+            </ProtectedRoute>
+          } />
           <Route path="/super-admin/add-client" element={<AddClient />} />
           <Route path="/super-admin/clients" element={<ClientManagement />} />
 
@@ -55,7 +64,11 @@ function App() {
           <Route path="/user" element={<UserHome />} />
           <Route path="/user/login" element={<UserLogin />} />
           <Route path="/user/register" element={<UserRegister />} />
-          <Route path="/user/dashboard" element={<UserDashboard />} />
+          <Route path="/user/dashboard" element={
+            <ProtectedRoute loginPath="/user/login">
+              <UserDashboard />
+            </ProtectedRoute>
+          } />
           <Route path="/user/search" element={<SearchBooks />} />
           <Route path="/user/forgot-password" element={<ForgotPassword />} />
           <Route path="/user/login-otp" element={<LoginOtp />} />

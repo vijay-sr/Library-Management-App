@@ -10,6 +10,7 @@ const Register = () => {
   const [fullName, setFullName] = useState('');
   const [cardNumber, setCardNumber] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -197,12 +198,14 @@ const Register = () => {
                         className="w-full pl-10 pr-10 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none" 
                         id="password" 
                         placeholder="••••••••" 
-                        type="password" 
+                        type={showPassword ? "text" : "password"} 
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                       />
-                      <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg cursor-pointer">visibility</span>
+                      <button className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition-colors" type="button" onClick={() => setShowPassword(!showPassword)}>
+                        <span className="material-symbols-outlined text-xl">{showPassword ? "visibility_off" : "visibility"}</span>
+                      </button>
                     </div>
                   </div>
                 </div>

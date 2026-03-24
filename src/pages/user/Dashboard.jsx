@@ -1,14 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Link, useNavigate } from 'react-router-dom';
+import { useToast } from '../../components/common/ToastContext';
 
 const Dashboard = () => {
     const navigate = useNavigate();
+    const { showToast } = useToast();
     const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [userName, setUserName] = useState('');
 
     useEffect(() => {
+        async function fetchUser() {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    setUserName(user.user_metadata?.full_name || user.email?.split('@')[0] || 'User');
+                }
+            } catch (err) {
+                console.error("Error fetching user:", err);
+            }
+        }
+        fetchUser();
+
         async function fetchBooks() {
             try {
                 const { data, error } = await supabase
@@ -27,6 +42,18 @@ const Dashboard = () => {
 
         fetchBooks();
     }, []);
+
+    const handleLogout = async () => {
+        try {
+            const { error } = await supabase.auth.signOut();
+            if (error) throw error;
+            showToast("Logged out successfully.", "success");
+            navigate('/user/login');
+        } catch (error) {
+            console.error("Error logging out:", error.message);
+            showToast("Error logging out.", "error");
+        }
+    };
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -63,7 +90,7 @@ const Dashboard = () => {
                             </form>
                         </label>
                     </div>
-                    
+                     
                     <div className="flex flex-1 justify-end gap-6 items-center">
                         <nav className="flex items-center gap-6">
                             <a className="text-primary text-sm font-semibold leading-normal border-b-2 border-primary pb-1" href="#dashboard">Dashboard</a>
@@ -77,11 +104,20 @@ const Dashboard = () => {
                                 <span className="material-symbols-outlined text-slate-600 dark:text-slate-400">notifications</span>
                                 <span className="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
                             </button>
-                            <div 
-                                className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary/20" 
-                                title="Portrait of Alex, a library member profile photo" 
-                                style={{backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuBKOyMQwVB_uK_o66oJOfB015RmKZBynITgOBg6I9AhCCfKfnT1GQTogLHdaJDTlccHIjTwxEGbGiaiGiie_Lf3Eudsz-OyWgoV_V3YUnguP6xRX8zW56lmnyeBq-GNCbbp5sqpVwKeFNOcfddWSa-emNijgIf665CoGuldFjiUsiJlKVTeIwojDckG2nFGtnBNI7qJkKWg3Cs6KiTeyw6CTV6L_IasaNKIr4wLTD7BdaacFMTyn6_ogHZtiqbZ1Y523iHb1TkJQo48")'}}
-                            ></div>
+                            <div className="flex items-center gap-2">
+                                <div 
+                                    className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary/20" 
+                                    title="Portrait of Alex, a library member profile photo" 
+                                    style={{backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuBKOyMQwVB_uK_o66oJOfB015RmKZBynITgOBg6I9AhCCfKfnT1GQTogLHdaJDTlccHIjTwxEGbGiaiGiie_Lf3Eudsz-OyWgoV_V3YUnguP6xRX8zW56lmnyeBq-GNCbbp5sqpVwKeFNOcfddWSa-emNijgIf665CoGuldFjiUsiJlKVTeIwojDckG2nFGtnBNI7qJkKWg3Cs6KiTeyw6CTV6L_IasaNKIr4wLTD7BdaacFMTyn6_ogHZtiqbZ1Y523iHb1TkJQo48")'}}
+                                ></div>
+                                <button 
+                                    onClick={handleLogout}
+                                    title="Logout"
+                                    className="flex items-center justify-center p-2 rounded-lg text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                                >
+                                    <span className="material-symbols-outlined">logout</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </header>
@@ -93,7 +129,7 @@ const Dashboard = () => {
                         {/* Welcome Section */}
                         <div className="flex flex-wrap justify-between items-end gap-4">
                             <div className="flex flex-col gap-2">
-                                <h1 className="text-slate-900 dark:text-slate-100 text-4xl font-extrabold leading-tight tracking-tight">Welcome back, Alex</h1>
+                                <h1 className="text-slate-900 dark:text-slate-100 text-4xl font-extrabold leading-tight tracking-tight">Welcome back, {userName || 'User'}</h1>
                                 <p className="text-slate-600 dark:text-slate-400 text-lg flex items-center gap-2">
                                     <span className="material-symbols-outlined text-amber-500">warning</span>
                                     You have <span className="font-bold text-slate-900 dark:text-slate-100">2 books</span> due this week.

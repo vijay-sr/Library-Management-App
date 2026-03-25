@@ -29,8 +29,10 @@ import UserLogin from './pages/user/Login';
 import UserRegister from './pages/user/Register';
 import UserDashboard from './pages/user/Dashboard';
 import SearchBooks from './pages/user/SearchBooks';
+import Catalog from './pages/user/Catalog';
 import ForgotPassword from './pages/user/Forgot-password';
 import LoginOtp from './pages/user/Login-otp';
+import UserLayout from './layouts/UserLayout';
 
 function App() {
   return (
@@ -39,9 +41,11 @@ function App() {
         <Routes>
 
           {/* ── Landing / Marketing Website ─── */}
-          <Route path="/" element={<LandingLayout><Home /></LandingLayout>} />
-          <Route path="/about" element={<LandingLayout><About /></LandingLayout>} />
-          <Route path="/contact" element={<LandingLayout><Contact /></LandingLayout>} />
+          <Route path="/" element={<LandingLayout />}>
+            <Route index element={<Home />} />
+            <Route path="about" element={<About />} />
+            <Route path="contact" element={<Contact />} />
+          </Route>
           <Route path="/register" element={<RegisterLibrary />} />
           <Route path="/login" element={<LibrarianLogin />} />
           <Route path="/dashboard" element={
@@ -64,14 +68,19 @@ function App() {
           <Route path="/user" element={<UserHome />} />
           <Route path="/user/login" element={<UserLogin />} />
           <Route path="/user/register" element={<UserRegister />} />
-          <Route path="/user/dashboard" element={
-            <ProtectedRoute loginPath="/user/login">
-              <UserDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/user/search" element={<SearchBooks />} />
           <Route path="/user/forgot-password" element={<ForgotPassword />} />
           <Route path="/user/login-otp" element={<LoginOtp />} />
+
+          {/* User Portal Protected Routes wrapped in UserLayout */}
+          <Route element={
+            <ProtectedRoute loginPath="/user/login">
+              <UserLayout />
+            </ProtectedRoute>
+          }>
+            <Route path="/user/dashboard" element={<UserDashboard />} />
+            <Route path="/user/catalog" element={<Catalog />} />
+            <Route path="/user/search" element={<SearchBooks />} />
+          </Route>
 
         </Routes>
       </Router>

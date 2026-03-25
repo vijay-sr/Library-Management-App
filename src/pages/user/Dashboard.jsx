@@ -43,91 +43,12 @@ const Dashboard = () => {
         fetchBooks();
     }, []);
 
-    const handleLogout = async () => {
-        try {
-            const { error } = await supabase.auth.signOut();
-            if (error) throw error;
-            showToast("Logged out successfully.", "success");
-            navigate('/user/login');
-        } catch (error) {
-            console.error("Error logging out:", error.message);
-            showToast("Error logging out.", "error");
-        }
-    };
-
-    const handleSearch = (e) => {
-        e.preventDefault();
-        navigate('/search');
-    };
-
     return (
-        <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
-            <div className="layout-container flex h-full grow flex-col">
+        <main className="flex-1 px-4 sm:px-10 lg:px-20 xl:px-40 py-8">
+            <div className="max-w-6xl mx-auto space-y-8">
                 
-                {/* Top Navigation Bar */}
-                <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-10 py-3 sticky top-0 z-50">
-                    <div className="flex items-center gap-8">
-                        <Link to="/" className="flex items-center gap-3 text-primary">
-                            <div className="size-8 flex items-center justify-center bg-primary/10 rounded-lg">
-                                <span className="material-symbols-outlined text-primary">auto_stories</span>
-                            </div>
-                            <h2 className="text-slate-900 dark:text-slate-100 text-xl font-bold leading-tight tracking-tight">LibraryConnect</h2>
-                        </Link>
-                        
-                        <label className="flex flex-col min-w-40 h-10 max-w-64">
-                            <form 
-                                onSubmit={handleSearch}
-                                className="flex w-full flex-1 items-stretch rounded-lg h-full overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
-                            >
-                                <div className="text-slate-500 dark:text-slate-400 flex items-center justify-center pl-3">
-                                    <span className="material-symbols-outlined text-[20px]">search</span>
-                                </div>
-                                <input 
-                                    className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden text-slate-900 dark:text-slate-100 focus:outline-0 focus:ring-0 border-none bg-transparent placeholder:text-slate-500 dark:placeholder:text-slate-400 px-3 text-sm font-normal outline-none" 
-                                    placeholder="Search for books, authors..." 
-                                />
-                                <button type="submit" className="hidden">Search</button>
-                            </form>
-                        </label>
-                    </div>
-                     
-                    <div className="flex flex-1 justify-end gap-6 items-center">
-                        <nav className="flex items-center gap-6">
-                            <a className="text-primary text-sm font-semibold leading-normal border-b-2 border-primary pb-1" href="#dashboard">Dashboard</a>
-                            <a className="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium leading-normal transition-colors" href="#my-books">My Books</a>
-                            <a className="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium leading-normal transition-colors" href="#reservations">Reservations</a>
-                            <a className="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium leading-normal transition-colors" href="#profile">Profile</a>
-                        </nav>
-                        
-                        <div className="flex items-center gap-3 border-l border-slate-200 dark:border-slate-800 pl-6">
-                            <button className="relative flex items-center justify-center rounded-full size-10 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                                <span className="material-symbols-outlined text-slate-600 dark:text-slate-400">notifications</span>
-                                <span className="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
-                            </button>
-                            <div className="flex items-center gap-2">
-                                <div 
-                                    className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary/20" 
-                                    title="Portrait of Alex, a library member profile photo" 
-                                    style={{backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuBKOyMQwVB_uK_o66oJOfB015RmKZBynITgOBg6I9AhCCfKfnT1GQTogLHdaJDTlccHIjTwxEGbGiaiGiie_Lf3Eudsz-OyWgoV_V3YUnguP6xRX8zW56lmnyeBq-GNCbbp5sqpVwKeFNOcfddWSa-emNijgIf665CoGuldFjiUsiJlKVTeIwojDckG2nFGtnBNI7qJkKWg3Cs6KiTeyw6CTV6L_IasaNKIr4wLTD7BdaacFMTyn6_ogHZtiqbZ1Y523iHb1TkJQo48")'}}
-                                ></div>
-                                <button 
-                                    onClick={handleLogout}
-                                    title="Logout"
-                                    className="flex items-center justify-center p-2 rounded-lg text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
-                                >
-                                    <span className="material-symbols-outlined">logout</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </header>
-
-                {/* Main Content Area */}
-                <main className="flex-1 px-4 sm:px-10 lg:px-20 xl:px-40 py-8">
-                    <div className="max-w-6xl mx-auto space-y-8">
-                        
-                        {/* Welcome Section */}
-                        <div className="flex flex-wrap justify-between items-end gap-4">
+                {/* Welcome Section */}
+                <div className="flex flex-wrap justify-between items-end gap-4">
                             <div className="flex flex-col gap-2">
                                 <h1 className="text-slate-900 dark:text-slate-100 text-4xl font-extrabold leading-tight tracking-tight">Welcome back, {userName || 'User'}</h1>
                                 <p className="text-slate-600 dark:text-slate-400 text-lg flex items-center gap-2">
@@ -135,7 +56,7 @@ const Dashboard = () => {
                                     You have <span className="font-bold text-slate-900 dark:text-slate-100">2 books</span> due this week.
                                 </p>
                             </div>
-                            <button className="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-lg font-bold text-sm shadow-lg shadow-primary/20 transition-all flex items-center gap-2">
+                            <button onClick={() => navigate('/user/catalog')} className="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-lg font-bold text-sm shadow-lg shadow-primary/20 transition-all flex items-center gap-2">
                                 <span className="material-symbols-outlined text-[20px]">explore</span>
                                 Browse Catalog
                             </button>
@@ -336,26 +257,8 @@ const Dashboard = () => {
                             </div>
                         </section>
                         
-                    </div>
-                </main>
-
-                {/* Footer */}
-                <footer className="mt-auto py-8 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-                    <div className="max-w-6xl mx-auto px-10 flex flex-wrap justify-between items-center gap-6">
-                        <div className="flex items-center gap-3">
-                            <span className="material-symbols-outlined text-primary">auto_stories</span>
-                            <p className="text-slate-500 dark:text-slate-400 text-sm">© 2023 LibraryConnect. Empowering readers everywhere.</p>
-                        </div>
-                        <div className="flex gap-6">
-                            <a className="text-slate-500 hover:text-primary transition-colors text-sm" href="#privacy">Privacy Policy</a>
-                            <a className="text-slate-500 hover:text-primary transition-colors text-sm" href="#terms">Terms of Service</a>
-                            <a className="text-slate-500 hover:text-primary transition-colors text-sm" href="#help">Help Center</a>
-                        </div>
-                    </div>
-                </footer>
-                
             </div>
-        </div>
+        </main>
     );
 };
 

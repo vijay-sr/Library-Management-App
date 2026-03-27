@@ -133,8 +133,16 @@ const Dashboard = () => {
                                                 <tr key={book.id || book.title} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                                                     <td className="px-6 py-4">
                                                         <div className="flex items-center gap-3">
-                                                            <div className="size-10 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                                                                <span className="material-symbols-outlined text-slate-400">book</span>
+                                                            <div className="size-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
+                                                                {book.image || book.cover_image ? (
+                                                                    <img 
+                                                                        src={book.image || book.cover_image} 
+                                                                        alt={book.title} 
+                                                                        className="w-full h-full object-cover"
+                                                                    />
+                                                                ) : (
+                                                                    <span className="material-symbols-outlined text-slate-400">book</span>
+                                                                )}
                                                             </div>
                                                             <span className="font-bold text-slate-900 dark:text-slate-100">{book.title}</span>
                                                         </div>

@@ -1,7 +1,40 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '../../lib/supabase';
+import { useToast } from '../../components/common/ToastContext';
 
 const LibrarianLogin = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { showToast } = useToast();
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    if (!email || !password) {
+      showToast('Please fill all fields', 'error');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      showToast('Login successful', 'success');
+      navigate('/dashboard');
+    } catch (error) {
+      showToast(error.message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -17,13 +50,22 @@ const LibrarianLogin = () => {
         {/* Login Card */}
         <div className="bg-white dark:bg-slate-800/50 rounded-xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-200 dark:border-slate-700 p-8">
           <h2 className="text-xl font-semibold mb-6">Welcome Back</h2>
-          <form action="#" className="space-y-5" method="POST">
+          <form className="space-y-5" onSubmit={handleLogin}>
             {/* Email Field */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5" htmlFor="email">Email Address</label>
               <div className="relative">
                 <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">mail_outline</span>
-                <input className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-slate-400 text-slate-900 dark:text-slate-100" id="email" name="email" placeholder="name@example.com" type="email" />
+                <input 
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-slate-400 text-slate-900 dark:text-slate-100" 
+                  id="email" 
+                  name="email" 
+                  placeholder="name@example.com" 
+                  type="email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
+                />
               </div>
             </div>
             
@@ -35,7 +77,16 @@ const LibrarianLogin = () => {
               </div>
               <div className="relative">
                 <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">lock_open</span>
-                <input className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-slate-400 text-slate-900 dark:text-slate-100" id="password" name="password" placeholder="••••••••" type="password" />
+                <input 
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-slate-400 text-slate-900 dark:text-slate-100" 
+                  id="password" 
+                  name="password" 
+                  placeholder="••••••••" 
+                  type="password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
+                />
               </div>
             </div>
             
@@ -48,9 +99,13 @@ const LibrarianLogin = () => {
             </div>
             
             {/* Submit Button */}
-            <button className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-3 rounded-lg shadow-md shadow-primary/20 transition-all flex items-center justify-center gap-2" type="submit">
-              <span>Sign In</span>
-              <span className="material-icons text-sm">login</span>
+            <button 
+              className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-3 rounded-lg shadow-md shadow-primary/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" 
+              type="submit"
+              disabled={loading}
+            >
+              <span>{loading ? 'Signing In...' : 'Sign In'}</span>
+              {!loading && <span className="material-icons text-sm">login</span>}
             </button>
           </form>
           

@@ -16,6 +16,7 @@ import Contact from './pages/landing/Contact';
 
 // Librarian dashboard (reuses the existing user dashboard for now)
 import LibrarianDashboard from './pages/landing/Dashboard';
+import AddBook from './pages/landing/AddBook';
 
 // ── Super Admin Portal ───────────────────────────────────────────────
 import SuperAdminLogin from './pages/super-admin/Login';
@@ -33,6 +34,7 @@ import Catalog from './pages/user/Catalog';
 import ForgotPassword from './pages/user/Forgot-password';
 import LoginOtp from './pages/user/Login-otp';
 import UserLayout from './layouts/UserLayout';
+import AdminLayout from './layouts/AdminLayout';
 
 function App() {
   return (
@@ -46,13 +48,14 @@ function App() {
             <Route path="about" element={<About />} />
             <Route path="contact" element={<Contact />} />
           </Route>
+
+          {/* ------------------Librarian/Admin Portal --------------------*/}
           <Route path="/register" element={<RegisterLibrary />} />
           <Route path="/login" element={<LibrarianLogin />} />
-          <Route path="/dashboard" element={
-            <ProtectedRoute loginPath="/login">
-              <LibrarianDashboard />
-            </ProtectedRoute>
-          } />
+          <Route element={<ProtectedRoute loginPath="/login"><AdminLayout /></ProtectedRoute>}>
+            <Route path="/dashboard" element={<LibrarianDashboard />} />
+            <Route path="/dashboard/add-book" element={<AddBook />} />
+          </Route>
 
           {/* ── Super Admin Portal ─────────── */}
           <Route path="/super-admin/login" element={<SuperAdminLogin />} />
@@ -72,11 +75,7 @@ function App() {
           <Route path="/user/login-otp" element={<LoginOtp />} />
 
           {/* User Portal Protected Routes wrapped in UserLayout */}
-          <Route element={
-            <ProtectedRoute loginPath="/user/login">
-              <UserLayout />
-            </ProtectedRoute>
-          }>
+          <Route element={<ProtectedRoute loginPath="/user/login"><UserLayout /></ProtectedRoute>}>
             <Route path="/user/dashboard" element={<UserDashboard />} />
             <Route path="/user/catalog" element={<Catalog />} />
             <Route path="/user/search" element={<SearchBooks />} />

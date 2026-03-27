@@ -1,7 +1,66 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '../../lib/supabase';
+import { useToast } from '../../components/common/ToastContext';
 
 const RegisterLibrary = () => {
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    libraryName: '',
+    password: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const { showToast } = useToast();
+  const navigate = useNavigate();
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    const { fullName, email, libraryName, password } = formData;
+
+    if (!fullName || !email || !libraryName || !password) {
+      showToast('Please fill all fields', 'error');
+      return;
+    }
+
+    if (password.length < 8) {
+      showToast('Password must be at least 8 characters', 'error');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            library_name: libraryName,
+            role: 'librarian'
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      showToast('Registration successful! Welcome to LibTrack.', 'success');
+      navigate('/dashboard');
+    } catch (error) {
+      showToast(error.message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
       <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
@@ -62,43 +121,76 @@ const RegisterLibrary = () => {
                   <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Get Started</h2>
                   <p className="text-slate-500 dark:text-slate-400 mt-2">Create your administrative account</p>
                 </div>
-                <form className="space-y-5">
+                <form className="space-y-5" onSubmit={handleRegister}>
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Full Name</label>
                     <div className="relative">
                       <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">person</span>
-                      <input className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none" placeholder="John Doe" type="text" />
+                      <input 
+                        className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none" 
+                        placeholder="John Doe" 
+                        type="text" 
+                        name="fullName"
+                        value={formData.fullName}
+                        onChange={handleInputChange}
+                        disabled={loading}
+                      />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Email Address</label>
                     <div className="relative">
                       <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">mail</span>
-                      <input className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none" placeholder="name@library.org" type="email" />
+                      <input 
+                        className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none" 
+                        placeholder="name@library.org" 
+                        type="email" 
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        disabled={loading}
+                      />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Organization / Library Name</label>
                     <div className="relative">
                       <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">account_balance</span>
-                      <input className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none" placeholder="Central City Public Library" type="text" />
+                      <input 
+                        className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none" 
+                        placeholder="Central City Public Library" 
+                        type="text" 
+                        name="libraryName"
+                        value={formData.libraryName}
+                        onChange={handleInputChange}
+                        disabled={loading}
+                      />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Password</label>
                     <div className="relative">
                       <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">lock</span>
-                      <input className="w-full pl-12 pr-12 py-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none" placeholder="••••••••" type="password" />
-                      <button className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary" type="button">
-                        <span className="material-symbols-outlined text-xl">visibility</span>
-                      </button>
+                      <input 
+                        className="w-full pl-12 pr-12 py-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none" 
+                        placeholder="••••••••" 
+                        type="password" 
+                        name="password"
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        disabled={loading}
+                      />
                     </div>
                     <p className="text-xs text-slate-500 mt-1 px-1">Must be at least 8 characters long</p>
                   </div>
                   <div className="pt-4">
-                    <button className="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/25 hover:bg-primary/90 transition-all flex items-center justify-center gap-2" type="submit">
-                      Create Account
-                      <span className="material-symbols-outlined text-xl">arrow_forward</span>
+                    <button 
+                      className="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/25 hover:bg-primary/90 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" 
+                      type="submit"
+                      disabled={loading}
+                    >
+                      {loading ? 'Creating Account...' : 'Create Account'}
+                      {!loading && <span className="material-symbols-outlined text-xl">arrow_forward</span>}
                     </button>
                   </div>
                   <div className="relative py-4 flex items-center justify-center">

@@ -6,6 +6,7 @@ import { useToast } from '../../components/common/ToastContext';
 const LibrarianLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -82,11 +83,15 @@ const LibrarianLogin = () => {
                   id="password" 
                   name="password" 
                   placeholder="••••••••" 
-                  type="password" 
+                  disabled={loading}
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  disabled={loading}
+                  required
                 />
+                <button className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition-colors" type="button" onClick={() => setShowPassword(!showPassword)}>
+                  <span className="material-symbols-outlined text-xl">{showPassword ? "visibility_off" : "visibility"}</span>
+                </button>
               </div>
             </div>
             

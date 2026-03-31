@@ -56,20 +56,44 @@ const handleSubmit = async (e) => {
   setLoading(true);
 
   try {
+    // 1. Get the current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) throw new Error("Unauthorized: Please log in again.");
+
     let imageUrl = '';
     
-    // Upload image if selected
+    // 2. Upload image if selected
     if (imageFile) {
       imageUrl = await uploadImage(imageFile);
     }
 
-    // Insert book data into 'books' table
+    // 3. Prepare book data for insertion
+    const { 
+      title, 
+      author, 
+      isbn, 
+      category, 
+      publication_date, 
+      edition, 
+      stock_count, 
+      description 
+    } = formData;
+
+    // 4. Insert book data into 'books' table
     const { error } = await supabase
       .from('books')
       .insert([
         { 
-          ...formData, 
-          image: imageUrl, // Storing the URL from storage
+          title, 
+          author, 
+          isbn, 
+          category, 
+          publication_date: publication_date || null, // Ensure empty date is null
+          edition, 
+          stock_count: stock_count ? parseInt(stock_count, 10) : 0, // Convert to number or default to 0
+          description,
+          cover_image: imageUrl, 
+          user_id: user.id, 
           created_at: new Date() 
         }
       ]);
@@ -77,7 +101,20 @@ const handleSubmit = async (e) => {
     if (error) throw error;
 
     showToast('Book added successfully!', 'success');
-    // Clear form or redirect
+    // Clear form
+    setFormData({
+      title: '',
+      author: '',
+      isbn: '',
+      category: '',
+      publication_date: '',
+      edition: '',
+      stock_count: '',
+      description: '',
+      cover_image: null,
+    });
+    setImageFile(null);
+    setImagePreview(null);
   } catch (error) {
     showToast(error.message, 'error');
   } finally {
@@ -161,14 +198,23 @@ const handleSubmit = async (e) => {
             </div>
             <div className="relative group">
               <div className="aspect-[2/3] w-full bg-slate-100 dark:bg-slate-800 rounded-lg flex flex-col items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-700 overflow-hidden relative transition-all group-hover:border-primary/40">
-                <div className="text-center p-6 z-10">
-                  <span className="material-symbols-outlined text-4xl text-slate-300 mb-2">add_photo_alternate</span>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Upload Cover</p>
-                  <p className="text-[10px] text-slate-400 mt-1">PNG, JPG up to 10MB</p>
-                </div>
-                <input value={formData.cover_image} onChange={(e) => setImageFile(e.target.files[0])} className="absolute inset-0 opacity-0 cursor-pointer z-20" type="file" />
+                {imagePreview ? (
+                  <img className="absolute inset-0 w-full h-full object-cover z-30" src={imagePreview} alt="Cover preview" />
+                ) : (
+                  <div className="text-center p-6 z-10">
+                    <span className="material-symbols-outlined text-4xl text-slate-300 mb-2">add_photo_alternate</span>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Upload Cover</p>
+                    <p className="text-[10px] text-slate-400 mt-1">PNG, JPG up to 10MB</p>
+                  </div>
+                )}
+                <input 
+                  onChange={handleImageChange} 
+                  className="absolute inset-0 opacity-0 cursor-pointer z-40" 
+                  type="file" 
+                  accept="image/*"
+                />
                 {/* Preview Mockup Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 opacity-50"></div>
+                {!imagePreview && <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 opacity-50"></div>}
               </div>
             </div>
             <div className="mt-6 p-4 bg-primary/10 rounded-lg border border-primary/10">

@@ -17,6 +17,7 @@ import Contact from './pages/landing/Contact';
 // Librarian dashboard (reuses the existing user dashboard for now)
 import LibrarianDashboard from './pages/landing/Dashboard';
 import AddBook from './pages/landing/AddBook';
+import BookInventory from './pages/landing/BookInventory';
 
 // ── Super Admin Portal ───────────────────────────────────────────────
 import SuperAdminLogin from './pages/super-admin/Login';
@@ -55,6 +56,7 @@ function App() {
           <Route element={<ProtectedRoute loginPath="/login"><AdminLayout /></ProtectedRoute>}>
             <Route path="/dashboard" element={<LibrarianDashboard />} />
             <Route path="/dashboard/add-book" element={<AddBook />} />
+            <Route path="/dashboard/book-inventory" element={<BookInventory />} />
           </Route>
 
           {/* ── Super Admin Portal ─────────── */}

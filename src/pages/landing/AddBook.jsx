@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useToast } from '../../components/common/ToastContext';
@@ -19,6 +19,30 @@ const AddBook = () => {
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newCatName, setNewCatName] = useState('');
+  const [editingId, setEditingId] = useState(null);
+  const [editName, setEditName] = useState('');
+  const [modalLoading, setModalLoading] = useState(false);
+
+  // Fetch categories from DB on mount
+  const fetchCategories = async () => {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .order('name');
+    
+    if (error) {
+      console.error("Error fetching categories:", error);
+    } else {
+      setCategories(data);
+    }
+  };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -34,20 +58,95 @@ const AddBook = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleAddCategory = async () => {
+    const trimmed = newCatName.trim();
+    if (!trimmed) return;
+
+    if (categories.some(c => c.name === trimmed)) {
+        showToast('Category already exists', 'error');
+        return;
+    }
+
+    try {
+      setModalLoading(true);
+      const { error } = await supabase.from('categories').insert([{ name: trimmed }]);
+      if (error) throw error;
+      
+      await fetchCategories();
+      setNewCatName('');
+      showToast('Category added!', 'success');
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const handleUpdateCategory = async (id) => {
+    const trimmed = editName.trim();
+    if (!trimmed) return;
+
+    try {
+      setModalLoading(true);
+      const { error } = await supabase.from('categories').update({ name: trimmed }).eq('id', id);
+      if (error) throw error;
+
+      await fetchCategories();
+      setEditingId(null);
+      showToast('Category updated!', 'success');
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const handleDeleteCategory = async (id, name) => {
+    if (!window.confirm(`Delete "${name}"? This will affect books using this category.`)) return;
+
+    try {
+      setModalLoading(true);
+      const { error } = await supabase.from('categories').delete().eq('id', id);
+      if (error) throw error;
+
+      await fetchCategories();
+      showToast('Category deleted', 'success');
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
 
 const uploadImage = async (file) => {
   const fileExt = file.name.split('.').pop();
-  const fileName = `${Math.random()}.${fileExt}`;
+  const timestamp = Date.now();
+  const randomStr = Math.random().toString(36).substring(7);
+  const fileName = `${timestamp}-${randomStr}.${fileExt}`;
   const filePath = `book-covers/${fileName}`;
+  
+  console.log("Uploading image to path:", filePath);
+
   // 1. Upload the file to 'books' bucket
-  const { error: uploadError } = await supabase.storage
+  const { error: uploadError, data } = await supabase.storage
     .from('books')
-    .upload(filePath, file);
-  if (uploadError) throw uploadError;
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: true // Allow overwriting if needed (though filename is now very unique)
+    });
+
+  if (uploadError) {
+    console.error("Storage upload error details:", uploadError);
+    throw uploadError;
+  }
+  
   // 2. Get the public URL
   const { data: { publicUrl } } = supabase.storage
     .from('books')
     .getPublicUrl(filePath);
+
+  console.log("Generated public URL:", publicUrl);
   return publicUrl;
 };
 
@@ -59,6 +158,13 @@ const handleSubmit = async (e) => {
     // 1. Get the current user
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) throw new Error("Unauthorized: Please log in again.");
+
+    // Check if the user is a librarian (based on metadata set during registration)
+    console.log("Current user metadata:", user.user_metadata);
+    const userRole = user.user_metadata?.role;
+    if (userRole !== 'librarian') {
+       throw new Error("Access Denied: Only librarians can add books. Please log in with a librarian account.");
+    }
 
     let imageUrl = '';
     
@@ -79,26 +185,32 @@ const handleSubmit = async (e) => {
       description 
     } = formData;
 
+    const bookRecord = {
+      title: title?.trim(),
+      author: author?.trim(),
+      isbn: isbn?.trim() || null,
+      category: (category === 'Select Category' || !category?.trim()) ? null : category.trim(),
+      publication_date: publication_date || null,
+      edition: edition?.trim() || null,
+      stock_count: parseInt(stock_count, 10) || 0,
+      description: description?.trim() || null,
+      cover_image: imageUrl || null,
+      user_id: user.id,
+      status: 'Available', // Default status often required by RLS policies
+      created_at: new Date().toISOString()
+    };
+
+    console.log("Final record being sent to Supabase:", bookRecord);
+
     // 4. Insert book data into 'books' table
     const { error } = await supabase
       .from('books')
-      .insert([
-        { 
-          title, 
-          author, 
-          isbn, 
-          category, 
-          publication_date: publication_date || null, // Ensure empty date is null
-          edition, 
-          stock_count: stock_count ? parseInt(stock_count, 10) : 0, // Convert to number or default to 0
-          description,
-          cover_image: imageUrl, 
-          user_id: user.id, 
-          created_at: new Date() 
-        }
-      ]);
+      .insert([bookRecord]);
 
-    if (error) throw error;
+    if (error) {
+      console.error("Supabase insert error details:", error);
+      throw error;
+    }
 
     showToast('Book added successfully!', 'success');
     // Clear form
@@ -153,15 +265,23 @@ const handleSubmit = async (e) => {
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">ISBN-13</label>
                 <input name='isbn' value={formData.isbn} onChange={handleChange} className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary text-slate-900 dark:text-white font-medium" placeholder="978-X-XXXX-XXXX-X" type="text" />
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Category</label>
+               <div className="space-y-2">
+                <div className="flex justify-between items-center mt-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Category</label>
+                  <button 
+                    type="button"
+                    onClick={() => setIsModalOpen(true)}
+                    className="text-[10px] font-bold text-primary hover:underline uppercase tracking-widest flex items-center gap-1"
+                  >
+                    Edit Categories
+                  </button>
+                </div>
+                
                 <select name='category' value={formData.category} onChange={handleChange} className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary text-slate-900 dark:text-white font-medium appearance-none">
-                  <option>Select Category</option>
-                  <option>Architecture</option>
-                  <option>Design Theory</option>
-                  <option>Historical Fiction</option>
-                  <option>Philosophy</option>
-                  <option>Scientific Journals</option>
+                  <option value="">Select Category</option>
+                  {categories.map(cat => (
+                    <option key={cat.id} value={cat.name}>{cat.name}</option>
+                  ))}
                 </select>
               </div>
               <div className="space-y-2">
@@ -240,6 +360,95 @@ const handleSubmit = async (e) => {
           </div>
         </div>
       </form>
+
+      {/* Category Manager Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Category Manager</h2>
+                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Global Taxonomy</p>
+              </div>
+              <button 
+                onClick={() => { setIsModalOpen(false); setEditingId(null); }}
+                className="size-8 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 transition-colors"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Add Input */}
+              <div className="flex gap-2">
+                <input 
+                  className="flex-1 bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary text-slate-900 dark:text-white font-medium text-sm"
+                  placeholder="New category name..."
+                  value={newCatName}
+                  onChange={(e) => setNewCatName(e.target.value)}
+                  disabled={modalLoading}
+                  onKeyPress={(e) => e.key === 'Enter' && handleAddCategory()}
+                />
+                <button 
+                  onClick={handleAddCategory}
+                  disabled={modalLoading || !newCatName.trim()}
+                  className="bg-primary text-white px-6 rounded-lg text-sm font-bold shadow-sm hover:opacity-90 disabled:opacity-50 transition-all"
+                >
+                  Add
+                </button>
+              </div>
+
+              {/* Scrollable List */}
+              <div className="max-h-[300px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                {categories.map((cat) => (
+                  <div key={cat.id} className="group flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-transparent hover:border-primary/20 transition-all">
+                    {editingId === cat.id ? (
+                      <div className="flex-1 flex gap-2">
+                        <input 
+                          autoFocus
+                          className="flex-1 bg-white dark:bg-slate-900 border-none rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-primary text-slate-900 dark:text-white font-medium text-sm"
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && handleUpdateCategory(cat.id)}
+                        />
+                        <button onClick={() => handleUpdateCategory(cat.id)} className="text-primary material-symbols-outlined text-lg">check</button>
+                        <button onClick={() => setEditingId(null)} className="text-slate-400 material-symbols-outlined text-lg">close</button>
+                      </div>
+                    ) : (
+                      <>
+                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{cat.name}</span>
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button 
+                            onClick={() => { setEditingId(cat.id); setEditName(cat.name); }}
+                            className="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-primary transition-all"
+                          >
+                            <span className="material-symbols-outlined text-sm">edit</span>
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteCategory(cat.id, cat.name)}
+                            className="p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-red-500 transition-all"
+                          >
+                            <span className="material-symbols-outlined text-sm">delete</span>
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-6 bg-slate-50 dark:bg-slate-800/50 flex justify-end">
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="text-sm font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -51,7 +51,7 @@ function AdminSidebar() {
                 <span className="material-symbols-outlined text-[22px]">dashboard</span>
                 <span className="text-sm font-semibold">Dashboard</span>
               </Link>
-              <Link className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" to="#">
+              <Link className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" to="/dashboard/book-inventory">
                 <span className="material-symbols-outlined text-[22px]">menu_book</span>
                 <span className="text-sm font-semibold">Manage Books</span>
               </Link>
